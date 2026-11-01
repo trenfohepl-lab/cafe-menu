@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cafe Delight – Digital Menu</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { -webkit-tap-highlight-color: transparent; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .drawer { transition: transform .3s ease; }
+  .overlay { transition: opacity .3s ease; }
+</style>
+</head>
+<body class="bg-orange-50 text-gray-800 pb-28">
+
+<!-- ================= HEADER ================= -->
+<header class="bg-white shadow-sm">
+  <div class="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+    <img id="cafeLogo" alt="Logo" class="w-14 h-14 rounded-full object-cover border-2 border-orange-500 bg-orange-100">
+    <div class="flex-1 min-w-0">
+      <h1 id="cafeName" class="text-xl font-bold text-orange-600 truncate"></h1>
+      <p id="cafeAddress" class="text-xs text-gray-500 leading-snug"></p>
+    </div>
+  </div>
+  <div class="max-w-2xl mx-auto px-4 pb-4 flex gap-2">
+    <a id="callBtn" class="flex-1 text-center bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg active:scale-95">📞 Call</a>
+    <a id="waBtn" target="_blank" rel="noopener" class="flex-1 text-center bg-green-500 text-white text-sm font-semibold py-2 rounded-lg active:scale-95">💬 WhatsApp</a>
+  </div>
+</header>
+
+<!-- ================= CATEGORY TABS ================= -->
+<nav class="sticky top-0 z-20 bg-orange-50/95 backdrop-blur border-b border-orange-100">
+  <div id="tabs" class="max-w-2xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar"></div>
+</nav>
+
+<!-- ================= MENU ================= -->
+<main class="max-w-2xl mx-auto px-4 py-4">
+  <div id="menu" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+  <p id="emptyMsg" class="hidden text-center text-gray-500 py-10">Is category mein koi item nahi hai.</p>
+</main>
+
+<!-- ================= STICKY CART BAR ================= -->
+<div id="cartBar" class="hidden fixed bottom-0 inset-x-0 z-30 p-3">
+  <button id="openCart" class="max-w-2xl mx-auto w-full flex items-center justify-between bg-orange-600 text-white rounded-xl px-5 py-3 shadow-xl active:scale-[.98]">
+    <span class="font-semibold">🛒 <span id="barCount">0</span> items</span>
+    <span class="font-bold text-lg">₹<span id="barTotal">0</span> &nbsp;›</span>
+  </button>
+</div>
+
+<!-- ================= CART DRAWER ================= -->
+<div id="overlay" class="overlay fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none"></div>
+<aside id="drawer" class="drawer fixed bottom-0 inset-x-0 z-50 translate-y-full bg-white rounded-t-3xl max-h-[92vh] flex flex-col max-w-2xl mx-auto shadow-2xl">
+  <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b">
+    <h2 class="text-lg font-bold">Your Order</h2>
+    <button id="closeCart" class="text-2xl leading-none text-gray-500 px-2" aria-label="Close">&times;</button>
+  </div>
+
+  <div class="overflow-y-auto px-5 py-3 flex-1">
+    <div id="cartItems" class="divide-y"></div>
+
+    <div class="flex justify-between items-center py-3 border-t mt-2">
+      <span class="font-semibold">Total</span>
+      <span class="text-xl font-bold text-orange-600">₹<span id="cartTotal">0</span></span>
+    </div>
+
+    <!-- Checkout form -->
+    <form id="checkoutForm" class="space-y-3 pb-4" novalidate>
+      <h3 class="font-bold pt-2">Checkout Details</h3>
+
+      <div>
+        <label class="text-sm font-medium">Name *</label>
+        <input id="custName" type="text" required placeholder="Aapka naam" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Phone Number *</label>
+        <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" required placeholder="10-digit mobile number" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Order Type</label>
+        <div class="mt-1 flex gap-2">
+          <label class="flex-1"><input type="radio" name="orderType" value="Delivery" class="peer hidden" checked>
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🛵 Delivery</span></label>
+          <label class="flex-1"><input type="radio" name="orderType" value="Dine-in" class="peer hidden">
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🍽️ Dine-in</span></label>
+        </div>
+      </div>
+
+      <div>
+        <label id="addrLabel" class="text-sm font-medium">Delivery Address *</label>
+        <textarea id="custAddr" rows="2" required placeholder="Poora address" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Payment Option</label>
+        <div class="mt-1 flex gap-2">
+          <label class="flex-1"><input type="radio" name="payment" value="Cash on Delivery" class="peer hidden" checked>
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">💵 Cash / COD</span></label>
+          <label class="flex-1"><input type="radio" name="payment" value="Pay via UPI" class="peer hidden">
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">📲 Pay via UPI</span></label>
+        </div>
+        <p id="upiNote" class="hidden mt-2 text-xs bg-orange-50 border border-orange-200 rounded-lg p-2">
+          UPI ID: <b id="upiIdText"></b> par payment karein aur screenshot WhatsApp par bhej dein.
+        </p>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Special Instructions (optional)</label>
+        <input id="custNote" type="text" placeholder="Jaise: kam teekha, extra cheese" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <p id="formError" class="hidden text-sm text-red-600"></p>
+
+      <button type="button" id="sendBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-[.98]">
+        ✅ Send Order via WhatsApp
+      </button>
+      <a id="waFallback" target="_blank" rel="noopener" class="hidden block text-center text-sm text-green-700 underline">WhatsApp nahi khula? Yahan dabayein</a>
+    </form>
+  </div>
+</aside>
+
+<script>
+/* =====================================================
+   CONFIG — yahan apni cafe ki details badlein
+   ===================================================== */
+const CONFIG = {
+  name: "Cafe Delight",
+  address: "123, Main Market Road, Your City – 700001",
+  logo: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=70",
+  phone: "91XXXXXXXXXX",      // country code ke saath, bina + ke (e.g. 919876543210)
+  upiId: "yourname@upi",
+  currency: "₹"
+};
+
+/* =====================================================
+   MENU DATA — items yahan add/edit/delete karein
+   category: "Fast Food" | "Beverages" | "Desserts"
+   ===================================================== */
+const DEFAULT_MENU = [
+  { id: 1,  name: "Veg Burger",        category: "Fast Food", price: 89,  desc: "Crispy aloo-tikki patty, lettuce, cheese aur special sauce.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70" },
+  { id: 2,  name: "Cheese Pizza",      category: "Fast Food", price: 199, desc: "8-inch pizza, mozzarella cheese aur fresh tomato sauce ke saath.", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70" },
+  { id: 3,  name: "Chicken Roll",      category: "Fast Food", price: 129, desc: "Juicy chicken tikka, pyaaz aur mint chutney paratha roll mein.", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=70" },
+  { id: 4,  name: "French Fries",      category: "Fast Food", price: 79,  desc: "Golden crispy fries, peri-peri masala ke saath.", image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=70" },
+  { id: 5,  name: "Cold Coffee",       category: "Beverages", price: 99,  desc: "Thick aur creamy cold coffee, ice-cream ke saath.", image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=70" },
+  { id: 6,  name: "Masala Chai",       category: "Beverages", price: 25,  desc: "Adrak-elaichi wali garma-garam kadak chai.", image: "https://images.unsplash.com/photo-1561336313-0bd5e0b27ec8?w=400&q=70" },
+  { id: 7,  name: "Fresh Lime Soda",   category: "Beverages", price: 49,  desc: "Sweet ya salted — taza nimbu ke saath.", image: "https://images.unsplash.com/photo-1523371054106-bbf80586c38c?w=400&q=70" },
+  { id: 8,  name: "Chocolate Brownie", category: "Desserts",  price: 89,  desc: "Warm gooey brownie, chocolate sauce ke saath.", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=70" },
+  { id: 9,  name: "Vanilla Ice Cream", category: "Desserts",  price: 59,  desc: "2 scoops creamy vanilla, choco chips topping ke saath.", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=70" },
+  { id: 10, name: "Gulab Jamun (2 pc)",category: "Desserts",  price: 49,  desc: "Garam, rasila gulab jamun.", image: "https://images.unsplash.com/photo-1666190092689-e3968aa0c3e7?w=400&q=70" }
+];
+
+/* =====================================================
+   STATE
+   ===================================================== */
+const $ = id => document.getElementById(id);
+/* Admin panel (admin.html) ka saved menu ho to wahi use hoga, warna DEFAULT_MENU */
+let MENU = DEFAULT_MENU;
+try {
+  const saved = JSON.parse(localStorage.getItem("cafe_menu") || "null");
+  if (Array.isArray(saved) && saved.length) MENU = saved;
+} catch (e) {}
+
+let activeCategory = "All";
+let cart = {}; // { itemId: qty }
+
+try { cart = JSON.parse(localStorage.getItem("cafe_cart") || "{}"); } catch (e) { cart = {}; }
+const saveCart = () => { try { localStorage.setItem("cafe_cart", JSON.stringify(cart)); } catch (e) {} };
+const money = n => CONFIG.currency + n;
+const findItem = id => MENU.find(i => i.id === Number(id));
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+function initHeader() {
+  $("cafeName").textContent = CONFIG.name;
+  $("cafeAddress").textContent = "📍 " + CONFIG.address;
+  $("cafeLogo").src = CONFIG.logo;
+  $("cafeLogo").onerror = e => { e.target.src = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><text x="50%" y="55%" font-size="30" text-anchor="middle" dominant-baseline="middle">☕</text></svg>'); };
+  $("callBtn").href = "tel:+" + CONFIG.phone;
+  $("waBtn").href = "https://wa.me/" + CONFIG.phone;
+  $("upiIdText").textContent = CONFIG.upiId;
+  document.title = CONFIG.name + " – Digital Menu";
+}
+
+/* =====================================================
+   TABS + MENU RENDER
+   ===================================================== */
+function renderTabs() {
+  const cats = ["All", ...new Set(MENU.map(i => i.category))];
+  $("tabs").innerHTML = cats.map(c => `
+    <button data-cat="${c}" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold border transition
+      ${c === activeCategory ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-700 border-gray-200"}">${c}</button>
+  `).join("");
+}
+
+function renderMenu() {
+  const items = MENU.filter(i => activeCategory === "All" || i.category === activeCategory);
+  $("emptyMsg").classList.toggle("hidden", items.length > 0);
+  $("menu").innerHTML = items.map(i => {
+    const oos = i.inStock === false;
+    const qty = oos ? 0 : (cart[i.id] || 0);
+    return `
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex sm:flex-col">
+      <img src="${i.image}" alt="${i.name}" loading="lazy"
+           onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;200&quot; height=&quot;200&quot;><rect width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;#ffedd5&quot;/><text x=&quot;50%&quot; y=&quot;50%&quot; font-size=&quot;48&quot; text-anchor=&quot;middle&quot; dominant-baseline=&quot;middle&quot;>🍽️</text></svg>')}'"
+           class="w-28 h-auto sm:w-full sm:h-40 object-cover shrink-0 bg-orange-100 ${oos ? 'grayscale opacity-60' : ''}">
+      <div class="p-3 flex flex-col flex-1 min-w-0">
+        <h3 class="font-bold leading-tight">${i.name}</h3>
+        <p class="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">${i.desc}</p>
+        <div class="flex items-center justify-between mt-3">
+          <span class="font-bold text-orange-600">${money(i.price)}</span>
+          ${qty === 0
+            ? (oos
+                ? `<span class="bg-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-lg">Out of Stock</span>`
+                : `<button data-add="${i.id}" class="bg-orange-500 text-white text-sm font-semibold px-4 py-1.5 rounded-lg active:scale-95">+ Add</button>`)
+            : `<div class="flex items-center gap-2 bg-orange-100 rounded-lg px-1">
+                 <button data-dec="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
+                 <span class="w-5 text-center font-semibold">${qty}</span>
+                 <button data-inc="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
+               </div>`}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* =====================================================
+   CART LOGIC
+   ===================================================== */
+function cartTotals() {
+  let count = 0, total = 0;
+  for (const id in cart) {
+    const it = findItem(id);
+    if (!it || it.inStock === false) { delete cart[id]; continue; }  // menu se hata diya gaya item
+    count += cart[id]; total += cart[id] * it.price;
+  }
+  return { count, total };
+}
+
+function changeQty(id, delta) {
+  const q = (cart[id] || 0) + delta;
+  if (q <= 0) delete cart[id]; else cart[id] = q;
+  saveCart(); refresh();
+}
+
+function renderCart() {
+  const { count, total } = cartTotals();
+  $("barCount").textContent = count;
+  $("barTotal").textContent = total;
+  $("cartTotal").textContent = total;
+  $("cartBar").classList.toggle("hidden", count === 0);
+
+  $("cartItems").innerHTML = count === 0
+    ? `<p class="py-8 text-center text-gray-500">Cart khaali hai 🛒</p>`
+    : Object.keys(cart).map(id => {
+        const it = findItem(id);
+        return `
+        <div class="flex items-center gap-3 py-3">
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">${it.name}</p>
+            <p class="text-xs text-gray-500">${money(it.price)} × ${cart[id]} = <b>${money(it.price * cart[id])}</b></p>
+          </div>
+          <div class="flex items-center gap-1 bg-orange-100 rounded-lg">
+            <button data-dec="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
+            <span class="w-5 text-center text-sm font-semibold">${cart[id]}</span>
+            <button data-inc="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
+          </div>
+        </div>`;
+      }).join("");
+
+  if (count === 0 && drawerOpen) closeDrawer();
+}
+
+function refresh() { renderMenu(); renderCart(); }
+
+/* =====================================================
+   DRAWER
+   ===================================================== */
+let drawerOpen = false;
+function openDrawer() {
+  drawerOpen = true;
+  $("drawer").classList.remove("translate-y-full");
+  $("overlay").classList.remove("opacity-0", "pointer-events-none");
+  document.body.style.overflow = "hidden";
+}
+function closeDrawer() {
+  drawerOpen = false;
+  $("drawer").classList.add("translate-y-full");
+  $("overlay").classList.add("opacity-0", "pointer-events-none");
+  document.body.style.overflow = "";
+}
+
+/* =====================================================
+   FORM + WHATSAPP
+   ===================================================== */
+const getRadio = name => document.querySelector(`input[name="${name}"]:checked`).value;
+
+function updateFormUI() {
+  const dine = getRadio("orderType") === "Dine-in";
+  $("addrLabel").textContent = dine ? "Table Number *" : "Delivery Address *";
+  $("custAddr").placeholder = dine ? "Jaise: Table 5" : "Poora address";
+  $("custAddr").rows = dine ? 1 : 2;
+  $("upiNote").classList.toggle("hidden", getRadio("payment") !== "Pay via UPI");
+}
+
+function showError(msg) { const e = $("formError"); e.textContent = msg; e.classList.remove("hidden"); }
+
+function buildMessage(c) {
+  const { total } = cartTotals();
+  const lines = Object.keys(cart).map((id, n) => {
+    const it = findItem(id);
+    return `${n + 1}. ${it.name} x ${cart[id]} = ${money(it.price * cart[id])}`;
+  });
+  const dine = c.type === "Dine-in";
+  return [
+    `*New Order – ${CONFIG.name}*`,
+    ``,
+    `*Items:*`,
+    ...lines,
+    ``,
+    `*Total: ${money(total)}*`,
+    ``,
+    `*Customer Details*`,
+    `Name: ${c.name}`,
+    `Phone: ${c.phone}`,
+    `Order Type: ${c.type}`,
+    `${dine ? "Table No" : "Address"}: ${c.addr}`,
+    `Payment: ${c.payment}`,
+    c.note ? `Note: ${c.note}` : null
+  ].filter(l => l !== null).join("\n");
+}
+
+function submitOrder(e) {
+  e.preventDefault();
+  $("formError").classList.add("hidden");
+
+  if (cartTotals().count === 0) return showError("Pehle cart mein item add karein.");
+
+  const c = {
+    name: $("custName").value.trim(),
+    phone: $("custPhone").value.trim(),
+    addr: $("custAddr").value.trim(),
+    note: $("custNote").value.trim(),
+    type: getRadio("orderType"),
+    payment: getRadio("payment")
+  };
+  if (!c.name) return showError("Apna naam likhein.");
+  if (!/^[6-9]\d{9}$/.test(c.phone)) return showError("Sahi 10-digit mobile number daalein.");
+  if (!c.addr) return showError(c.type === "Dine-in" ? "Table number likhein." : "Delivery address likhein.");
+
+  const url = "https://wa.me/" + CONFIG.phone + "?text=" + encodeURIComponent(buildMessage(c));
+  $("waFallback").href = url;
+  $("waFallback").classList.remove("hidden");
+  window.location.href = url;
+}
+
+/* =====================================================
+   EVENTS
+   ===================================================== */
+document.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.cat)  { activeCategory = t.dataset.cat; renderTabs(); renderMenu(); }
+  if (t.dataset.add)  changeQty(t.dataset.add, 1);
+  if (t.dataset.inc)  changeQty(t.dataset.inc, 1);
+  if (t.dataset.dec)  changeQty(t.dataset.dec, -1);
+});
+$("openCart").addEventListener("click", openDrawer);
+$("closeCart").addEventListener("click", closeDrawer);
+$("overlay").addEventListener("click", closeDrawer);
+$("checkoutForm").addEventListener("submit", submitOrder);
+$("sendBtn").addEventListener("click", submitOrder);
+document.querySelectorAll('input[name="orderType"], input[name="payment"]').forEach(r => r.addEventListener("change", updateFormUI));
+$("custPhone").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+
+/* INIT */
+initHeader(); renderTabs(); updateFormUI(); refresh();
+</script>
+</body>
+</html>

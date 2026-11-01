@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel – Cafe Menu</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+<!-- ================= LOGIN ================= -->
+<section id="loginView" class="min-h-screen flex items-center justify-center p-4">
+  <form id="loginForm" class="bg-white w-full max-w-xs rounded-2xl shadow-lg p-6 space-y-4 text-center">
+    <div class="text-4xl">🔐</div>
+    <h1 class="text-xl font-bold">Admin Login</h1>
+    <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN daalein"
+           class="w-full text-center tracking-widest text-xl border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400" autofocus>
+    <p id="loginErr" class="hidden text-sm text-red-600">Galat PIN. Dobara try karein.</p>
+    <button type="button" id="loginBtn" class="w-full bg-orange-500 text-white font-bold py-2.5 rounded-xl active:scale-95">Login</button>
+  </form>
+</section>
+
+<!-- ================= PANEL ================= -->
+<section id="panelView" class="hidden">
+  <header class="bg-orange-600 text-white sticky top-0 z-20 shadow">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="font-bold text-lg">⚙️ Menu Admin</h1>
+      <button id="logoutBtn" class="text-sm bg-white/20 px-3 py-1 rounded-lg">Logout</button>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-4 space-y-5">
+
+    <!-- Add New Item -->
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="font-bold mb-3">➕ Add New Item</h2>
+      <form id="addForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input id="newTitle" required placeholder="Title *" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <input id="newPrice" required type="number" min="0" step="1" inputmode="numeric" placeholder="Price (₹) *" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <input id="newCategory" required list="catList" placeholder="Category * (e.g. Fast Food)" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <datalist id="catList"></datalist>
+        <input id="newImage" type="url" placeholder="Image URL (https://...)" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <input id="newDesc" placeholder="Description (optional)" class="sm:col-span-2 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <button type="button" id="addBtn" class="sm:col-span-2 bg-green-500 text-white font-bold py-2.5 rounded-xl active:scale-95">Add Item</button>
+      </form>
+    </div>
+
+    <!-- Items List -->
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-bold">📋 Items (<span id="itemCount">0</span>)</h2>
+        <span class="text-xs text-gray-500">Price badalne ke baad ✔ dabayein</span>
+      </div>
+      <div id="itemsList" class="divide-y"></div>
+    </div>
+
+    <!-- Save / Export -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <h2 class="font-bold">💾 Data Save / Export</h2>
+      <p class="text-xs text-gray-500">
+        Har change browser ke localStorage mein apne aap save hota hai (index.html usi browser/domain par ye data padhta hai).
+        Doosre device ya hosting ke liye JSON download karke index.html mein replace karein.
+      </p>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="dlJson" class="bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg">⬇ Download menu.json</button>
+        <button id="copyJs" class="bg-indigo-600 text-white text-sm font-semibold py-2 rounded-lg">📋 Copy as JS code</button>
+        <label class="bg-gray-200 text-sm font-semibold py-2 rounded-lg text-center cursor-pointer">
+          ⬆ Import JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden">
+        </label>
+        <button id="resetBtn" class="bg-red-100 text-red-700 text-sm font-semibold py-2 rounded-lg">↺ Reset to Default</button>
+      </div>
+      <details class="text-xs text-gray-600">
+        <summary class="cursor-pointer font-medium">index.html mein replace kaise karein?</summary>
+        <ol class="list-decimal ml-5 mt-2 space-y-1">
+          <li>"Copy as JS code" dabayein.</li>
+          <li>index.html kholein aur <code>const DEFAULT_MENU = [ ... ];</code> poora dhoondhein.</li>
+          <li>Use copy kiye gaye code se replace kar dein aur save karein.</li>
+        </ol>
+      </details>
+    </div>
+  </main>
+</section>
+
+<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity z-50"></div>
+
+<script>
+/* ===== CONFIG ===== */
+const ADMIN_PIN = "1234";          // <-- apna PIN yahan badlein
+const STORAGE_KEY = "cafe_menu";   // index.html bhi yahi key padhta hai
+
+/* index.html wala default menu (sirf pehli baar / reset ke liye) */
+const DEFAULT_MENU = [
+  { id: 1,  name: "Veg Burger",        category: "Fast Food", price: 89,  desc: "Crispy aloo-tikki patty, lettuce, cheese aur special sauce.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70" },
+  { id: 2,  name: "Cheese Pizza",      category: "Fast Food", price: 199, desc: "8-inch pizza, mozzarella cheese aur fresh tomato sauce ke saath.", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70" },
+  { id: 3,  name: "Chicken Roll",      category: "Fast Food", price: 129, desc: "Juicy chicken tikka, pyaaz aur mint chutney paratha roll mein.", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=70" },
+  { id: 4,  name: "French Fries",      category: "Fast Food", price: 79,  desc: "Golden crispy fries, peri-peri masala ke saath.", image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=70" },
+  { id: 5,  name: "Cold Coffee",       category: "Beverages", price: 99,  desc: "Thick aur creamy cold coffee, ice-cream ke saath.", image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=70" },
+  { id: 6,  name: "Masala Chai",       category: "Beverages", price: 25,  desc: "Adrak-elaichi wali garma-garam kadak chai.", image: "https://images.unsplash.com/photo-1561336313-0bd5e0b27ec8?w=400&q=70" },
+  { id: 7,  name: "Fresh Lime Soda",   category: "Beverages", price: 49,  desc: "Sweet ya salted — taza nimbu ke saath.", image: "https://images.unsplash.com/photo-1523371054106-bbf80586c38c?w=400&q=70" },
+  { id: 8,  name: "Chocolate Brownie", category: "Desserts",  price: 89,  desc: "Warm gooey brownie, chocolate sauce ke saath.", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=70" },
+  { id: 9,  name: "Vanilla Ice Cream", category: "Desserts",  price: 59,  desc: "2 scoops creamy vanilla, choco chips topping ke saath.", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=70" },
+  { id: 10, name: "Gulab Jamun (2 pc)",category: "Desserts",  price: 49,  desc: "Garam, rasila gulab jamun.", image: "https://images.unsplash.com/photo-1666190092689-e3968aa0c3e7?w=400&q=70" }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const FALLBACK_IMG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="100%" height="100%" fill="#ffedd5"/><text x="50%" y="50%" font-size="32" text-anchor="middle" dominant-baseline="middle">🍽️</text></svg>');
+
+/* ===== DATA ===== */
+let menu;
+function loadMenu() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_MENU));
+}
+function saveMenu(msg) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(menu)); toast(msg || "Saved ✔"); }
+  catch (e) { toast("⚠ Browser storage mein save nahi ho paya"); }
+}
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.style.opacity = 1;
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.opacity = 0, 1600);
+}
+
+/* ===== LOGIN ===== */
+function showPanel() { $("loginView").classList.add("hidden"); $("panelView").classList.remove("hidden"); menu = loadMenu(); render(); }
+function doLogin(e) {
+  if (e) e.preventDefault();
+  if ($("pin").value.trim() === ADMIN_PIN) {
+    try { sessionStorage.setItem("admin_ok", "1"); } catch (e) {}
+    showPanel();
+  } else { $("loginErr").classList.remove("hidden"); $("pin").value = ""; }
+}
+$("loginForm").addEventListener("submit", doLogin);
+$("loginBtn").addEventListener("click", doLogin);
+$("pin").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(e); });
+$("logoutBtn").addEventListener("click", () => {
+  try { sessionStorage.removeItem("admin_ok"); } catch (e) {}
+  location.reload();
+});
+try { if (sessionStorage.getItem("admin_ok") === "1") showPanel(); } catch (e) {}
+
+/* ===== RENDER ===== */
+function render() {
+  $("itemCount").textContent = menu.length;
+  $("catList").innerHTML = [...new Set(menu.map(i => i.category))].map(c => `<option value="${esc(c)}">`).join("");
+  $("itemsList").innerHTML = menu.length === 0
+    ? `<p class="py-6 text-center text-gray-500 text-sm">Koi item nahi hai.</p>`
+    : menu.map(i => {
+        const inStock = i.inStock !== false;
+        return `
+        <div class="py-3 flex items-center gap-3 ${inStock ? "" : "bg-red-50/50"}">
+          <img src="${esc(i.image || "")}" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" class="w-14 h-14 rounded-lg object-cover bg-orange-100 shrink-0 ${inStock ? "" : "grayscale opacity-60"}">
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">${esc(i.name)}</p>
+            <p class="text-xs text-gray-500">${esc(i.category)}</p>
+            <div class="flex items-center gap-1 mt-1">
+              <span class="text-sm">₹</span>
+              <input data-price="${i.id}" type="number" min="0" inputmode="numeric" value="${i.price}" class="w-20 border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+              <button data-save="${i.id}" class="text-green-600 font-bold px-1" title="Save price">✔</button>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2">
+            <label class="flex items-center gap-1 cursor-pointer select-none">
+              <span class="text-[11px] ${inStock ? "text-green-600" : "text-red-600"} font-semibold">${inStock ? "In Stock" : "Out of Stock"}</span>
+              <input type="checkbox" data-stock="${i.id}" class="sr-only peer" ${inStock ? "checked" : ""}>
+              <span class="w-10 h-6 bg-red-400 peer-checked:bg-green-500 rounded-full relative transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition peer-checked:after:translate-x-4"></span>
+            </label>
+            <button data-del="${i.id}" class="text-xs text-red-500">🗑 Delete</button>
+          </div>
+        </div>`;
+      }).join("");
+}
+
+/* ===== ACTIONS ===== */
+const byId = id => menu.find(i => i.id === Number(id));
+
+$("itemsList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.save) {
+    const v = Number(document.querySelector(`input[data-price="${b.dataset.save}"]`).value);
+    if (isNaN(v) || v < 0) return toast("Sahi price daalein");
+    byId(b.dataset.save).price = v; saveMenu("Price updated ✔"); render();
+  }
+  if (b.dataset.del) {
+    const it = byId(b.dataset.del);
+    if (confirm(`"${it.name}" delete karein?`)) { menu = menu.filter(i => i.id !== it.id); saveMenu("Deleted"); render(); }
+  }
+});
+$("itemsList").addEventListener("change", e => {
+  if (e.target.dataset.stock) {
+    byId(e.target.dataset.stock).inStock = e.target.checked;
+    saveMenu(e.target.checked ? "In Stock ✔" : "Out of Stock set"); render();
+  }
+});
+$("itemsList").addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.dataset.price) document.querySelector(`button[data-save="${e.target.dataset.price}"]`).click();
+});
+
+function addItem(e) {
+  if (e) e.preventDefault();
+  const price = Number($("newPrice").value);
+  const name = $("newTitle").value.trim(), category = $("newCategory").value.trim();
+  if (!name || !category || isNaN(price) || price < 0) return toast("Title, Price aur Category zaroori hain");
+  menu.push({
+    id: menu.reduce((m, i) => Math.max(m, i.id), 0) + 1,
+    name, category, price,
+    desc: $("newDesc").value.trim(),
+    image: $("newImage").value.trim(),
+    inStock: true
+  });
+  saveMenu("Item added ✔"); $("addForm").reset(); render();
+}
+$("addForm").addEventListener("submit", addItem);
+$("addBtn").addEventListener("click", addItem);
+
+/* ===== EXPORT / IMPORT ===== */
+$("dlJson").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(menu, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "menu.json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("copyJs").addEventListener("click", async () => {
+  const code = "const DEFAULT_MENU = " + JSON.stringify(menu, null, 2) + ";";
+  try { await navigator.clipboard.writeText(code); toast("JS code copy ho gaya ✔"); }
+  catch (e) { prompt("Ctrl+C se copy karein:", code); }
+});
+$("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!Array.isArray(data) || !data.every(i => i && i.name && i.category && typeof i.price === "number")) throw 0;
+      menu = data.map((i, n) => ({ ...i, id: Number(i.id) || n + 1 }));
+      saveMenu("Imported ✔"); render();
+    } catch (err) { toast("⚠ Galat JSON file"); }
+  };
+  r.readAsText(f); e.target.value = "";
+});
+$("resetBtn").addEventListener("click", () => {
+  if (confirm("Saara data default menu par reset karein?")) {
+    menu = JSON.parse(JSON.stringify(DEFAULT_MENU)); saveMenu("Reset done"); render();
+  }
+});
+</script>
+</body>
+</html>
