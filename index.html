@@ -3,349 +3,374 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel – Cafe Menu</title>
+<title>Digital Menu & Ordering</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { -webkit-tap-highlight-color: transparent; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .drawer { transition: transform .3s ease; }
+  .overlay { transition: opacity .3s ease; }
+</style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
+<body class="bg-orange-50 text-gray-800 pb-28">
 
-<!-- ================= LOGIN ================= -->
-<section id="loginView" class="min-h-screen flex items-center justify-center p-4">
-  <form id="loginForm" class="bg-white w-full max-w-xs rounded-2xl shadow-lg p-6 space-y-4 text-center">
-    <div class="text-4xl">🔐</div>
-    <h1 class="text-xl font-bold">Admin Login</h1>
-    <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN daalein"
-           class="w-full text-center tracking-widest text-xl border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400" autofocus>
-    <p id="loginErr" class="hidden text-sm text-red-600">Galat PIN. Dobara try karein.</p>
-    <button type="button" id="loginBtn" class="w-full bg-orange-500 text-white font-bold py-2.5 rounded-xl active:scale-95">Login</button>
-  </form>
-</section>
-
-<!-- ================= PANEL ================= -->
-<section id="panelView" class="hidden">
-  <header class="bg-orange-600 text-white sticky top-0 z-20 shadow">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-      <h1 class="font-bold text-lg">⚙️ Menu Admin</h1>
-      <button id="logoutBtn" class="text-sm bg-white/20 px-3 py-1 rounded-lg">Logout</button>
+<!-- ================= HEADER ================= -->
+<header class="bg-white shadow-sm">
+  <div class="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+    <img id="cafeLogo" alt="Logo" class="w-14 h-14 rounded-full object-cover border-2 border-orange-500 bg-orange-100">
+    <div class="flex-1 min-w-0">
+      <h1 id="cafeName" class="text-xl font-bold text-orange-600 truncate">Cafe Delight</h1>
+      <p id="cafeAddress" class="text-xs text-gray-500 leading-snug"></p>
     </div>
-  </header>
+  </div>
+  <div class="max-w-2xl mx-auto px-4 pb-4 flex gap-2">
+    <a id="callBtn" class="flex-1 text-center bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg active:scale-95">📞 Call</a>
+    <a id="waBtn" target="_blank" rel="noopener" class="flex-1 text-center bg-green-500 text-white text-sm font-semibold py-2 rounded-lg active:scale-95">💬 WhatsApp</a>
+  </div>
+</header>
 
-  <main class="max-w-3xl mx-auto p-4 space-y-5">
+<!-- ================= CATEGORY TABS ================= -->
+<nav class="sticky top-0 z-20 bg-orange-50/95 backdrop-blur border-b border-orange-100">
+  <div id="tabs" class="max-w-2xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar"></div>
+</nav>
 
-    <!-- Add New Item -->
-    <div class="bg-white rounded-2xl shadow-sm p-4">
-      <h2 class="font-bold mb-3 text-lg">➕ Naya Item Add Karein</h2>
-      <form id="addForm" class="space-y-3">
+<!-- ================= MENU ================= -->
+<main class="max-w-2xl mx-auto px-4 py-4">
+  <div id="menu" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+  <p id="emptyMsg" class="hidden text-center text-gray-500 py-10">Is category mein koi item nahi hai.</p>
+</main>
+
+<!-- ================= STICKY CART BAR ================= -->
+<div id="cartBar" class="hidden fixed bottom-0 inset-x-0 z-30 p-3">
+  <button id="openCart" class="max-w-2xl mx-auto w-full flex items-center justify-between bg-orange-600 text-white rounded-xl px-5 py-3 shadow-xl active:scale-[.98]">
+    <span class="font-semibold">🛒 <span id="barCount">0</span> items</span>
+    <span class="font-bold text-lg">₹<span id="barTotal">0</span> &nbsp;›</span>
+  </button>
+</div>
+
+<!-- ================= CART DRAWER ================= -->
+<div id="overlay" class="overlay fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none"></div>
+<aside id="drawer" class="drawer fixed bottom-0 inset-x-0 z-50 translate-y-full bg-white rounded-t-3xl max-h-[92vh] flex flex-col max-w-2xl mx-auto shadow-2xl">
+  <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b">
+    <h2 class="text-lg font-bold">Your Order</h2>
+    <button id="closeCart" class="text-2xl leading-none text-gray-500 px-2" aria-label="Close">&times;</button>
+  </div>
+
+  <div class="overflow-y-auto px-5 py-3 flex-1">
+    <div id="cartItems" class="divide-y"></div>
+
+    <div class="flex justify-between items-center py-3 border-t mt-2">
+      <span class="font-semibold">Total</span>
+      <span class="text-xl font-bold text-orange-600">₹<span id="cartTotal">0</span></span>
+    </div>
+
+    <!-- Checkout form -->
+    <form id="checkoutForm" class="space-y-3 pb-4" novalidate>
+      <h3 class="font-bold pt-2">Checkout Details</h3>
+
+      <div>
+        <label class="text-sm font-medium">Name *</label>
+        <input id="custName" type="text" required placeholder="Aapka naam" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Phone Number *</label>
+        <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" required placeholder="10-digit mobile number" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Order Type</label>
+        <div class="mt-1 flex gap-2">
+          <label class="flex-1"><input type="radio" name="orderType" value="Delivery" class="peer hidden" checked>
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🛵 Delivery</span></label>
+          <label class="flex-1"><input type="radio" name="orderType" value="Dine-in" class="peer hidden">
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🍽️ Dine-in</span></label>
+        </div>
+      </div>
+
+      <div>
+        <label id="addrLabel" class="text-sm font-medium">Delivery Address *</label>
+        <textarea id="custAddr" rows="2" required placeholder="Poora address" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium">Payment Option</label>
+        <div class="mt-1 flex gap-2">
+          <label class="flex-1"><input type="radio" name="payment" value="Cash on Delivery" class="peer hidden" checked>
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">💵 Cash / COD</span></label>
+          <label class="flex-1"><input type="radio" name="payment" value="Pay via UPI" class="peer hidden">
+            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">📲 Pay via UPI</span></label>
+        </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-semibold text-gray-600">Item Name *</label>
-            <input id="newTitle" required placeholder="Jaise: Paneer Roll" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <!-- Dynamic Amount UPI QR Box -->
+        <div id="upiBox" class="hidden mt-3 bg-orange-50 border border-orange-200 rounded-xl p-3 text-center space-y-2">
+          <p class="text-xs font-semibold text-gray-700">Scan karke exact bill amount pay karein:</p>
+          <div class="flex justify-center">
+            <img id="dynamicQrImg" src="" alt="UPI QR" class="w-40 h-40 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
           </div>
-          <div>
-            <label class="text-xs font-semibold text-gray-600">Price (₹) *</label>
-            <input id="newPrice" required type="number" min="0" step="1" inputmode="numeric" placeholder="Jaise: 120" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
-          </div>
+          <p class="text-xs text-gray-600">Amount: <b class="text-orange-600 text-sm">₹<span id="qrAmountText">0</span></b> | UPI: <b id="upiIdText"></b></p>
+          <a id="upiIntentBtn" href="#" class="inline-block w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-lg active:scale-95">
+            👉 Tap to Pay with GPay / PhonePe / Paytm
+          </a>
+          <p class="text-[11px] text-gray-500">Payment hone ke baad WhatsApp order bhej dein.</p>
         </div>
-
-        <!-- Category Section with Quick Suggestions -->
-        <div>
-          <label class="text-xs font-semibold text-gray-600">Category * (Niche tap karein ya khud type karein)</label>
-          <input id="newCategory" required placeholder="Category select karein" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
-          
-          <!-- Category Suggestions Buttons -->
-          <div class="flex flex-wrap gap-1.5 mt-2" id="catSuggestions">
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Fast Food</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Pizza & Burger</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Beverages / Drinks</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Chai & Coffee</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Rolls & Momos</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Desserts / Mithai</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Chinese</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Snacks</span>
-            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Meals / Thali</span>
-          </div>
-        </div>
-
-        <!-- Image Upload Section -->
-        <div>
-          <label class="text-xs font-semibold text-gray-600">Item Photo (Gallery se upload karein ya URL dalein)</label>
-          <div class="mt-1 flex items-center gap-3">
-            <label class="flex-1 cursor-pointer bg-gray-50 border-2 border-dashed border-gray-300 hover:border-orange-500 rounded-xl p-3 text-center transition">
-              <span class="text-2xl block mb-1">📸</span>
-              <span class="text-xs text-gray-600 font-medium" id="uploadLabelText">Phone se Photo chunein</span>
-              <input id="imageFileInput" type="file" accept="image/*" class="hidden">
-            </label>
-            <!-- Preview Box -->
-            <div id="previewContainer" class="hidden relative w-16 h-16 rounded-lg overflow-hidden border">
-              <img id="imagePreview" src="" class="w-full h-full object-cover">
-              <button type="button" id="removeImgBtn" class="absolute top-0 right-0 bg-red-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">×</button>
-            </div>
-          </div>
-          <!-- Optional URL fallback -->
-          <input id="newImage" type="url" placeholder="Ya image URL paste karein (optional)" class="w-full border rounded-lg px-3 py-1.5 mt-2 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-400">
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-gray-600">Description (Optional)</label>
-          <input id="newDesc" placeholder="Jaise: Extra cheese aur mint chutney ke saath" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        </div>
-
-        <button type="button" id="addBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-95 shadow-md">
-          ✅ Item Add Karein
-        </button>
-      </form>
-    </div>
-
-    <!-- Items List -->
-    <div class="bg-white rounded-2xl shadow-sm p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-bold text-lg">📋 Available Items (<span id="itemCount">0</span>)</h2>
-        <span class="text-xs text-gray-500">Price badalne ke baad ✔ dabayein</span>
       </div>
-      <div id="itemsList" class="divide-y"></div>
-    </div>
 
-    <!-- Save / Export -->
-    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
-      <h2 class="font-bold text-sm">💾 Data Save & Export</h2>
-      <p class="text-xs text-gray-500">
-        Data browser ke storage mein save ho chuka hai. Agar aap doosre device ya fresh hosting par ye items daalna chahte hain, toh yahan se download ya copy kar sakte hain.
-      </p>
-      <div class="grid grid-cols-2 gap-2">
-        <button id="dlJson" class="bg-blue-600 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-95">⬇ Download menu.json</button>
-        <button id="copyJs" class="bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-95">📋 Copy as JS code</button>
-        <label class="bg-gray-200 text-xs font-semibold py-2.5 rounded-lg text-center cursor-pointer active:scale-95">
-          ⬆ Import JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden">
-        </label>
-        <button id="resetBtn" class="bg-red-100 text-red-700 text-xs font-semibold py-2.5 rounded-lg active:scale-95">↺ Reset Default</button>
+      <div>
+        <label class="text-sm font-medium">Special Instructions (optional)</label>
+        <input id="custNote" type="text" placeholder="Jaise: kam teekha, extra cheese" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
       </div>
-    </div>
-  </main>
-</section>
 
-<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity z-50"></div>
+      <p id="formError" class="hidden text-sm text-red-600"></p>
+
+      <button type="button" id="sendBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-[.98]">
+        ✅ Send Order via WhatsApp
+      </button>
+      <a id="waFallback" target="_blank" rel="noopener" class="hidden block text-center text-sm text-green-700 underline">WhatsApp nahi khula? Yahan dabayein</a>
+    </form>
+  </div>
+</aside>
 
 <script>
-/* ===== CONFIG ===== */
-const ADMIN_PIN = "1234";
-const STORAGE_KEY = "cafe_menu";
+/* DEFAULT CONFIG — Admin panel se update hone par wahi read karega */
+let CONFIG = {
+  name: "Cafe Delight",
+  address: "Main Market Road, Your City",
+  logo: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=70",
+  phone: "919876543210",
+  upiId: "demo@upi",
+  currency: "₹"
+};
+
+try {
+  const savedCfg = JSON.parse(localStorage.getItem("cafe_config") || "null");
+  if (savedCfg) CONFIG = { ...CONFIG, ...savedCfg };
+} catch(e) {}
 
 const DEFAULT_MENU = [
-  { id: 1,  name: "Veg Burger",        category: "Fast Food", price: 89,  desc: "Crispy aloo-tikki patty, lettuce, cheese aur special sauce.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70" },
-  { id: 2,  name: "Cheese Pizza",      category: "Fast Food", price: 199, desc: "8-inch pizza, mozzarella cheese aur fresh tomato sauce ke saath.", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70" },
-  { id: 3,  name: "Chicken Roll",      category: "Fast Food", price: 129, desc: "Juicy chicken tikka, pyaaz aur mint chutney paratha roll mein.", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=70" },
-  { id: 4,  name: "French Fries",      category: "Fast Food", price: 79,  desc: "Golden crispy fries, peri-peri masala ke saath.", image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=70" },
-  { id: 5,  name: "Cold Coffee",       category: "Beverages", price: 99,  desc: "Thick aur creamy cold coffee, ice-cream ke saath.", image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=70" },
+  { id: 1,  name: "Veg Burger",        category: "Fast Food", price: 89,  desc: "Crispy aloo-tikki patty, lettuce aur cheese.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70" },
+  { id: 2,  name: "Cheese Pizza",      category: "Fast Food", price: 199, desc: "8-inch pizza mozzarella cheese ke saath.", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70" },
+  { id: 3,  name: "Chicken Roll",      category: "Fast Food", price: 129, desc: "Juicy chicken tikka paratha roll mein.", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=70" },
+  { id: 4,  name: "French Fries",      category: "Fast Food", price: 79,  desc: "Golden crispy fries peri-peri masala ke saath.", image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=70" },
+  { id: 5,  name: "Cold Coffee",       category: "Beverages", price: 99,  desc: "Thick aur creamy cold coffee ice-cream ke saath.", image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=70" },
   { id: 6,  name: "Masala Chai",       category: "Beverages", price: 25,  desc: "Adrak-elaichi wali garma-garam kadak chai.", image: "https://images.unsplash.com/photo-1561336313-0bd5e0b27ec8?w=400&q=70" },
-  { id: 7,  name: "Fresh Lime Soda",   category: "Beverages", price: 49,  desc: "Sweet ya salted — taza nimbu ke saath.", image: "https://images.unsplash.com/photo-1523371054106-bbf80586c38c?w=400&q=70" },
-  { id: 8,  name: "Chocolate Brownie", category: "Desserts",  price: 89,  desc: "Warm gooey brownie, chocolate sauce ke saath.", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=70" },
-  { id: 9,  name: "Vanilla Ice Cream", category: "Desserts",  price: 59,  desc: "2 scoops creamy vanilla, choco chips topping ke saath.", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=70" },
-  { id: 10, name: "Gulab Jamun (2 pc)",category: "Desserts",  price: 49,  desc: "Garam, rasila gulab jamun.", image: "https://images.unsplash.com/photo-1666190092689-e3968aa0c3e7?w=400&q=70" }
+  { id: 7,  name: "Fresh Lime Soda",   category: "Beverages", price: 49,  desc: "Sweet ya salted taza nimbu soda.", image: "https://images.unsplash.com/photo-1523371054106-bbf80586c38c?w=400&q=70" },
+  { id: 8,  name: "Chocolate Brownie", category: "Desserts",  price: 89,  desc: "Warm gooey brownie chocolate sauce ke saath.", image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=70" }
 ];
 
 const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-const FALLBACK_IMG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="100%" height="100%" fill="#ffedd5"/><text x="50%" y="50%" font-size="32" text-anchor="middle" dominant-baseline="middle">🍽️</text></svg>');
+let MENU = DEFAULT_MENU;
+try {
+  const saved = JSON.parse(localStorage.getItem("cafe_menu") || "null");
+  if (Array.isArray(saved) && saved.length) MENU = saved;
+} catch (e) {}
 
-let uploadedBase64 = "";
+let activeCategory = "All";
+let cart = {};
+try { cart = JSON.parse(localStorage.getItem("cafe_cart") || "{}"); } catch (e) { cart = {}; }
+const saveCart = () => { try { localStorage.setItem("cafe_cart", JSON.stringify(cart)); } catch (e) {} };
+const money = n => CONFIG.currency + n;
+const findItem = id => MENU.find(i => i.id === Number(id));
 
-/* ===== IMAGE COMPRESSION (Max ~30KB) ===== */
-function handleImageUpload(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const MAX_WIDTH = 400;
-      let width = img.width;
-      let height = img.height;
-      if (width > MAX_WIDTH) {
-        height = Math.round((height * MAX_WIDTH) / width);
-        width = MAX_WIDTH;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      uploadedBase64 = canvas.toDataURL("image/jpeg", 0.65);
-      $("imagePreview").src = uploadedBase64;
-      $("previewContainer").classList.remove("hidden");
-      $("uploadLabelText").textContent = "Photo Selected ✔";
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+function initHeader() {
+  $("cafeName").textContent = CONFIG.name;
+  $("cafeAddress").textContent = "📍 " + CONFIG.address;
+  $("cafeLogo").src = CONFIG.logo;
+  $("cafeLogo").onerror = e => { e.target.src = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><text x="50%" y="55%" font-size="30" text-anchor="middle" dominant-baseline="middle">☕</text></svg>'); };
+  $("callBtn").href = "tel:+" + CONFIG.phone;
+  $("waBtn").href = "https://wa.me/" + CONFIG.phone;
+  $("upiIdText").textContent = CONFIG.upiId;
+  document.title = CONFIG.name + " – Digital Menu";
 }
 
-$("imageFileInput").addEventListener("change", e => handleImageUpload(e.target.files[0]));
-$("removeImgBtn").addEventListener("click", () => {
-  uploadedBase64 = "";
-  $("imageFileInput").value = "";
-  $("previewContainer").classList.add("hidden");
-  $("uploadLabelText").textContent = "Phone se Photo chunein";
-});
+function renderTabs() {
+  const cats = ["All", ...new Set(MENU.map(i => i.category))];
+  $("tabs").innerHTML = cats.map(c => `
+    <button data-cat="${c}" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold border transition
+      ${c === activeCategory ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-700 border-gray-200"}">${c}</button>
+  `).join("");
+}
 
-/* ===== CATEGORY SUGGESTIONS CLICK ===== */
-$("catSuggestions").addEventListener("click", e => {
-  const span = e.target.closest("span");
-  if (span) {
-    $("newCategory").value = span.textContent.trim();
-    toast(`Category: ${span.textContent.trim()}`);
+function renderMenu() {
+  const items = MENU.filter(i => activeCategory === "All" || i.category === activeCategory);
+  $("emptyMsg").classList.toggle("hidden", items.length > 0);
+  $("menu").innerHTML = items.map(i => {
+    const oos = i.inStock === false;
+    const qty = oos ? 0 : (cart[i.id] || 0);
+    return `
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex sm:flex-col">
+      <img src="${i.image}" alt="${i.name}" loading="lazy"
+           onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;200&quot; height=&quot;200&quot;><rect width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;#ffedd5&quot;/><text x=&quot;50%&quot; y=&quot;50%&quot; font-size=&quot;48&quot; text-anchor=&quot;middle&quot; dominant-baseline=&quot;middle&quot;>🍽️</text></svg>')}'"
+           class="w-28 h-auto sm:w-full sm:h-40 object-cover shrink-0 bg-orange-100 ${oos ? 'grayscale opacity-60' : ''}">
+      <div class="p-3 flex flex-col flex-1 min-w-0">
+        <h3 class="font-bold leading-tight">${i.name}</h3>
+        <p class="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">${i.desc || ''}</p>
+        <div class="flex items-center justify-between mt-3">
+          <span class="font-bold text-orange-600">${money(i.price)}</span>
+          ${qty === 0
+            ? (oos
+                ? `<span class="bg-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-lg">Out of Stock</span>`
+                : `<button data-add="${i.id}" class="bg-orange-500 text-white text-sm font-semibold px-4 py-1.5 rounded-lg active:scale-95">+ Add</button>`)
+            : `<div class="flex items-center gap-2 bg-orange-100 rounded-lg px-1">
+                 <button data-dec="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
+                 <span class="w-5 text-center font-semibold">${qty}</span>
+                 <button data-inc="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
+               </div>`}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function cartTotals() {
+  let count = 0, total = 0;
+  for (const id in cart) {
+    const it = findItem(id);
+    if (!it || it.inStock === false) { delete cart[id]; continue; }
+    count += cart[id]; total += cart[id] * it.price;
   }
-});
-
-/* ===== DATA & STORAGE ===== */
-let menu;
-function loadMenu() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (Array.isArray(parsed)) return parsed;
-  } catch (e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_MENU));
+  return { count, total };
 }
 
-function saveMenu(msg) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(menu));
-    toast(msg || "Saved ✔");
-  } catch (e) {
-    toast("⚠ Storage full ho gaya hai! Chhoti photo use karein.");
-  }
+function changeQty(id, delta) {
+  const q = (cart[id] || 0) + delta;
+  if (q <= 0) delete cart[id]; else cart[id] = q;
+  saveCart(); refresh();
 }
 
-function toast(msg) {
-  const t = $("toast"); t.textContent = msg; t.style.opacity = 1;
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.opacity = 0, 1800);
+function updateDynamicQr(total) {
+  if (total <= 0) return;
+  $("qrAmountText").textContent = total;
+  // Dynamic UPI URL with Exact Total Amount
+  const upiUrl = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.name)}&am=${total}&cu=INR&tn=Order%20Payment`;
+  $("dynamicQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}`;
+  $("upiIntentBtn").href = upiUrl;
 }
 
-/* ===== LOGIN ===== */
-function showPanel() { $("loginView").classList.add("hidden"); $("panelView").classList.remove("hidden"); menu = loadMenu(); render(); }
-function doLogin(e) {
-  if (e) e.preventDefault();
-  if ($("pin").value.trim() === ADMIN_PIN) {
-    try { sessionStorage.setItem("admin_ok", "1"); } catch (e) {}
-    showPanel();
-  } else { $("loginErr").classList.remove("hidden"); $("pin").value = ""; }
-}
-$("loginForm").addEventListener("submit", doLogin);
-$("loginBtn").addEventListener("click", doLogin);
-$("logoutBtn").addEventListener("click", () => {
-  try { sessionStorage.removeItem("admin_ok"); } catch (e) {}
-  location.reload();
-});
-try { if (sessionStorage.getItem("admin_ok") === "1") showPanel(); } catch (e) {}
+function renderCart() {
+  const { count, total } = cartTotals();
+  $("barCount").textContent = count;
+  $("barTotal").textContent = total;
+  $("cartTotal").textContent = total;
+  $("cartBar").classList.toggle("hidden", count === 0);
 
-/* ===== RENDER ITEMS ===== */
-function render() {
-  $("itemCount").textContent = menu.length;
-  $("itemsList").innerHTML = menu.length === 0
-    ? `<p class="py-6 text-center text-gray-500 text-sm">Abhi koi item nahi hai.</p>`
-    : menu.map(i => {
-        const inStock = i.inStock !== false;
+  $("cartItems").innerHTML = count === 0
+    ? `<p class="py-8 text-center text-gray-500">Cart khaali hai 🛒</p>`
+    : Object.keys(cart).map(id => {
+        const it = findItem(id);
         return `
-        <div class="py-3 flex items-center gap-3 ${inStock ? "" : "bg-red-50/50"}">
-          <img src="${esc(i.image || "")}" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" class="w-14 h-14 rounded-lg object-cover bg-orange-100 shrink-0 ${inStock ? "" : "grayscale opacity-60"}">
+        <div class="flex items-center gap-3 py-3">
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-sm truncate">${esc(i.name)}</p>
-            <p class="text-xs text-gray-500">${esc(i.category)}</p>
-            <div class="flex items-center gap-1 mt-1">
-              <span class="text-sm">₹</span>
-              <input data-price="${i.id}" type="number" min="0" inputmode="numeric" value="${i.price}" class="w-20 border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
-              <button data-save="${i.id}" class="text-green-600 font-bold px-1 text-base" title="Save price">✔</button>
-            </div>
+            <p class="font-semibold text-sm truncate">${it.name}</p>
+            <p class="text-xs text-gray-500">${money(it.price)} × ${cart[id]} = <b>${money(it.price * cart[id])}</b></p>
           </div>
-          <div class="flex flex-col items-end gap-2">
-            <label class="flex items-center gap-1 cursor-pointer select-none">
-              <span class="text-[11px] ${inStock ? "text-green-600" : "text-red-600"} font-semibold">${inStock ? "In Stock" : "Out of Stock"}</span>
-              <input type="checkbox" data-stock="${i.id}" class="sr-only peer" ${inStock ? "checked" : ""}>
-              <span class="w-10 h-6 bg-red-400 peer-checked:bg-green-500 rounded-full relative transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition peer-checked:after:translate-x-4"></span>
-            </label>
-            <button data-del="${i.id}" class="text-xs text-red-500 hover:text-red-700">🗑 Delete</button>
+          <div class="flex items-center gap-1 bg-orange-100 rounded-lg">
+            <button data-dec="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
+            <span class="w-5 text-center text-sm font-semibold">${cart[id]}</span>
+            <button data-inc="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
           </div>
         </div>`;
       }).join("");
+
+  updateDynamicQr(total);
+  if (count === 0 && drawerOpen) closeDrawer();
 }
 
-/* ===== ACTIONS ===== */
-const byId = id => menu.find(i => i.id === Number(id));
+function refresh() { renderMenu(); renderCart(); }
 
-$("itemsList").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.save) {
-    const v = Number(document.querySelector(`input[data-price="${b.dataset.save}"]`).value);
-    if (isNaN(v) || v < 0) return toast("Sahi price daalein");
-    byId(b.dataset.save).price = v; saveMenu("Price updated ✔"); render();
-  }
-  if (b.dataset.del) {
-    const it = byId(b.dataset.del);
-    if (confirm(`"${it.name}" delete karein?`)) { menu = menu.filter(i => i.id !== it.id); saveMenu("Deleted"); render(); }
-  }
-});
-$("itemsList").addEventListener("change", e => {
-  if (e.target.dataset.stock) {
-    byId(e.target.dataset.stock).inStock = e.target.checked;
-    saveMenu(e.target.checked ? "In Stock ✔" : "Out of Stock set"); render();
-  }
-});
+let drawerOpen = false;
+function openDrawer() {
+  drawerOpen = true;
+  $("drawer").classList.remove("translate-y-full");
+  $("overlay").classList.remove("opacity-0", "pointer-events-none");
+  document.body.style.overflow = "hidden";
+}
+function closeDrawer() {
+  drawerOpen = false;
+  $("drawer").classList.add("translate-y-full");
+  $("overlay").classList.add("opacity-0", "pointer-events-none");
+  document.body.style.overflow = "";
+}
 
-function addItem(e) {
-  if (e) e.preventDefault();
-  const price = Number($("newPrice").value);
-  const name = $("newTitle").value.trim(), category = $("newCategory").value.trim();
-  if (!name || !category || isNaN(price) || price < 0) return toast("Title, Price aur Category zaroori hain");
-  
-  // Photo logic: Gallery photo pehle, warna URL input, warna default icon
-  const finalImage = uploadedBase64 || $("newImage").value.trim() || "";
+const getRadio = name => document.querySelector(`input[name="${name}"]:checked`).value;
 
-  menu.push({
-    id: menu.reduce((m, i) => Math.max(m, i.id), 0) + 1,
-    name, category, price,
-    desc: $("newDesc").value.trim(),
-    image: finalImage,
-    inStock: true
+function updateFormUI() {
+  const dine = getRadio("orderType") === "Dine-in";
+  $("addrLabel").textContent = dine ? "Table Number *" : "Delivery Address *";
+  $("custAddr").placeholder = dine ? "Jaise: Table 5" : "Poora address";
+  $("custAddr").rows = dine ? 1 : 2;
+  const isUpi = getRadio("payment") === "Pay via UPI";
+  $("upiBox").classList.toggle("hidden", !isUpi);
+}
+
+function showError(msg) { const e = $("formError"); e.textContent = msg; e.classList.remove("hidden"); }
+
+function buildMessage(c) {
+  const { total } = cartTotals();
+  const lines = Object.keys(cart).map((id, n) => {
+    const it = findItem(id);
+    return `${n + 1}. ${it.name} x ${cart[id]} = ${money(it.price * cart[id])}`;
   });
-
-  saveMenu("Item successfully added ✔");
-  $("addForm").reset();
-  uploadedBase64 = "";
-  $("previewContainer").classList.add("hidden");
-  $("uploadLabelText").textContent = "Phone se Photo chunein";
-  render();
+  const dine = c.type === "Dine-in";
+  return [
+    `*New Order – ${CONFIG.name}*`,
+    ``,
+    `*Items:*`,
+    ...lines,
+    ``,
+    `*Total: ${money(total)}*`,
+    ``,
+    `*Customer Details*`,
+    `Name: ${c.name}`,
+    `Phone: ${c.phone}`,
+    `Order Type: ${c.type}`,
+    `${dine ? "Table No" : "Address"}: ${c.addr}`,
+    `Payment: ${c.payment}`,
+    c.note ? `Note: ${c.note}` : null
+  ].filter(l => l !== null).join("\n");
 }
-$("addBtn").addEventListener("click", addItem);
 
-/* ===== EXPORT / IMPORT ===== */
-$("dlJson").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(menu, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "menu.json"; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-});
-$("copyJs").addEventListener("click", async () => {
-  const code = "const DEFAULT_MENU = " + JSON.stringify(menu, null, 2) + ";";
-  try { await navigator.clipboard.writeText(code); toast("JS code copy ho gaya ✔"); }
-  catch (e) { prompt("Ctrl+C se copy karein:", code); }
-});
-$("importFile").addEventListener("change", e => {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const data = JSON.parse(r.result);
-      if (!Array.isArray(data) || !data.every(i => i && i.name && i.category && typeof i.price === "number")) throw 0;
-      menu = data.map((i, n) => ({ ...i, id: Number(i.id) || n + 1 }));
-      saveMenu("Imported ✔"); render();
-    } catch (err) { toast("⚠ Galat JSON file"); }
+function submitOrder(e) {
+  e.preventDefault();
+  $("formError").classList.add("hidden");
+  if (cartTotals().count === 0) return showError("Pehle cart mein item add karein.");
+
+  const c = {
+    name: $("custName").value.trim(),
+    phone: $("custPhone").value.trim(),
+    addr: $("custAddr").value.trim(),
+    note: $("custNote").value.trim(),
+    type: getRadio("orderType"),
+    payment: getRadio("payment")
   };
-  r.readAsText(f); e.target.value = "";
+  if (!c.name) return showError("Apna naam likhein.");
+  if (!/^[6-9]\d{9}$/.test(c.phone)) return showError("Sahi 10-digit mobile number daalein.");
+  if (!c.addr) return showError(c.type === "Dine-in" ? "Table number likhein." : "Delivery address likhein.");
+
+  const url = "https://wa.me/" + CONFIG.phone + "?text=" + encodeURIComponent(buildMessage(c));
+  $("waFallback").href = url;
+  $("waFallback").classList.remove("hidden");
+  window.location.href = url;
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.cat)  { activeCategory = t.dataset.cat; renderTabs(); renderMenu(); }
+  if (t.dataset.add)  changeQty(t.dataset.add, 1);
+  if (t.dataset.inc)  changeQty(t.dataset.inc, 1);
+  if (t.dataset.dec)  changeQty(t.dataset.dec, -1);
 });
-$("resetBtn").addEventListener("click", () => {
-  if (confirm("Saara data default menu par reset karein?")) {
-    menu = JSON.parse(JSON.stringify(DEFAULT_MENU)); saveMenu("Reset done"); render();
-  }
-});
+$("openCart").addEventListener("click", openDrawer);
+$("closeCart").addEventListener("click", closeDrawer);
+$("overlay").addEventListener("click", closeDrawer);
+$("checkoutForm").addEventListener("submit", submitOrder);
+$("sendBtn").addEventListener("click", submitOrder);
+document.querySelectorAll('input[name="orderType"], input[name="payment"]').forEach(r => r.addEventListener("change", updateFormUI));
+$("custPhone").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
+
+initHeader(); renderTabs(); updateFormUI(); refresh();
 </script>
 </body>
 </html>
