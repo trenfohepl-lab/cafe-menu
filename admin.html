@@ -33,22 +33,73 @@
 
     <!-- Add New Item -->
     <div class="bg-white rounded-2xl shadow-sm p-4">
-      <h2 class="font-bold mb-3">➕ Add New Item</h2>
-      <form id="addForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input id="newTitle" required placeholder="Title *" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        <input id="newPrice" required type="number" min="0" step="1" inputmode="numeric" placeholder="Price (₹) *" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        <input id="newCategory" required list="catList" placeholder="Category * (e.g. Fast Food)" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        <datalist id="catList"></datalist>
-        <input id="newImage" type="url" placeholder="Image URL (https://...)" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        <input id="newDesc" placeholder="Description (optional)" class="sm:col-span-2 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-        <button type="button" id="addBtn" class="sm:col-span-2 bg-green-500 text-white font-bold py-2.5 rounded-xl active:scale-95">Add Item</button>
+      <h2 class="font-bold mb-3 text-lg">➕ Naya Item Add Karein</h2>
+      <form id="addForm" class="space-y-3">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-gray-600">Item Name *</label>
+            <input id="newTitle" required placeholder="Jaise: Paneer Roll" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-gray-600">Price (₹) *</label>
+            <input id="newPrice" required type="number" min="0" step="1" inputmode="numeric" placeholder="Jaise: 120" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+        </div>
+
+        <!-- Category Section with Quick Suggestions -->
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Category * (Niche tap karein ya khud type karein)</label>
+          <input id="newCategory" required placeholder="Category select karein" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          
+          <!-- Category Suggestions Buttons -->
+          <div class="flex flex-wrap gap-1.5 mt-2" id="catSuggestions">
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Fast Food</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Pizza & Burger</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Beverages / Drinks</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Chai & Coffee</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Rolls & Momos</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Desserts / Mithai</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Chinese</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Snacks</span>
+            <span class="cursor-pointer text-xs bg-orange-100 hover:bg-orange-500 hover:text-white text-orange-700 px-2.5 py-1 rounded-full font-medium transition">Meals / Thali</span>
+          </div>
+        </div>
+
+        <!-- Image Upload Section -->
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Item Photo (Gallery se upload karein ya URL dalein)</label>
+          <div class="mt-1 flex items-center gap-3">
+            <label class="flex-1 cursor-pointer bg-gray-50 border-2 border-dashed border-gray-300 hover:border-orange-500 rounded-xl p-3 text-center transition">
+              <span class="text-2xl block mb-1">📸</span>
+              <span class="text-xs text-gray-600 font-medium" id="uploadLabelText">Phone se Photo chunein</span>
+              <input id="imageFileInput" type="file" accept="image/*" class="hidden">
+            </label>
+            <!-- Preview Box -->
+            <div id="previewContainer" class="hidden relative w-16 h-16 rounded-lg overflow-hidden border">
+              <img id="imagePreview" src="" class="w-full h-full object-cover">
+              <button type="button" id="removeImgBtn" class="absolute top-0 right-0 bg-red-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">×</button>
+            </div>
+          </div>
+          <!-- Optional URL fallback -->
+          <input id="newImage" type="url" placeholder="Ya image URL paste karein (optional)" class="w-full border rounded-lg px-3 py-1.5 mt-2 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-400">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Description (Optional)</label>
+          <input id="newDesc" placeholder="Jaise: Extra cheese aur mint chutney ke saath" class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        </div>
+
+        <button type="button" id="addBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-95 shadow-md">
+          ✅ Item Add Karein
+        </button>
       </form>
     </div>
 
     <!-- Items List -->
     <div class="bg-white rounded-2xl shadow-sm p-4">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="font-bold">📋 Items (<span id="itemCount">0</span>)</h2>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-lg">📋 Available Items (<span id="itemCount">0</span>)</h2>
         <span class="text-xs text-gray-500">Price badalne ke baad ✔ dabayein</span>
       </div>
       <div id="itemsList" class="divide-y"></div>
@@ -56,39 +107,29 @@
 
     <!-- Save / Export -->
     <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
-      <h2 class="font-bold">💾 Data Save / Export</h2>
+      <h2 class="font-bold text-sm">💾 Data Save & Export</h2>
       <p class="text-xs text-gray-500">
-        Har change browser ke localStorage mein apne aap save hota hai (index.html usi browser/domain par ye data padhta hai).
-        Doosre device ya hosting ke liye JSON download karke index.html mein replace karein.
+        Data browser ke storage mein save ho chuka hai. Agar aap doosre device ya fresh hosting par ye items daalna chahte hain, toh yahan se download ya copy kar sakte hain.
       </p>
       <div class="grid grid-cols-2 gap-2">
-        <button id="dlJson" class="bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg">⬇ Download menu.json</button>
-        <button id="copyJs" class="bg-indigo-600 text-white text-sm font-semibold py-2 rounded-lg">📋 Copy as JS code</button>
-        <label class="bg-gray-200 text-sm font-semibold py-2 rounded-lg text-center cursor-pointer">
+        <button id="dlJson" class="bg-blue-600 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-95">⬇ Download menu.json</button>
+        <button id="copyJs" class="bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-95">📋 Copy as JS code</button>
+        <label class="bg-gray-200 text-xs font-semibold py-2.5 rounded-lg text-center cursor-pointer active:scale-95">
           ⬆ Import JSON<input id="importFile" type="file" accept=".json,application/json" class="hidden">
         </label>
-        <button id="resetBtn" class="bg-red-100 text-red-700 text-sm font-semibold py-2 rounded-lg">↺ Reset to Default</button>
+        <button id="resetBtn" class="bg-red-100 text-red-700 text-xs font-semibold py-2.5 rounded-lg active:scale-95">↺ Reset Default</button>
       </div>
-      <details class="text-xs text-gray-600">
-        <summary class="cursor-pointer font-medium">index.html mein replace kaise karein?</summary>
-        <ol class="list-decimal ml-5 mt-2 space-y-1">
-          <li>"Copy as JS code" dabayein.</li>
-          <li>index.html kholein aur <code>const DEFAULT_MENU = [ ... ];</code> poora dhoondhein.</li>
-          <li>Use copy kiye gaye code se replace kar dein aur save karein.</li>
-        </ol>
-      </details>
     </div>
   </main>
 </section>
 
-<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity z-50"></div>
+<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2 rounded-full opacity-0 pointer-events-none transition-opacity z-50"></div>
 
 <script>
 /* ===== CONFIG ===== */
-const ADMIN_PIN = "1234";          // <-- apna PIN yahan badlein
-const STORAGE_KEY = "cafe_menu";   // index.html bhi yahi key padhta hai
+const ADMIN_PIN = "1234";
+const STORAGE_KEY = "cafe_menu";
 
-/* index.html wala default menu (sirf pehli baar / reset ke liye) */
 const DEFAULT_MENU = [
   { id: 1,  name: "Veg Burger",        category: "Fast Food", price: 89,  desc: "Crispy aloo-tikki patty, lettuce, cheese aur special sauce.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70" },
   { id: 2,  name: "Cheese Pizza",      category: "Fast Food", price: 199, desc: "8-inch pizza, mozzarella cheese aur fresh tomato sauce ke saath.", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=70" },
@@ -106,7 +147,55 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const FALLBACK_IMG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="100%" height="100%" fill="#ffedd5"/><text x="50%" y="50%" font-size="32" text-anchor="middle" dominant-baseline="middle">🍽️</text></svg>');
 
-/* ===== DATA ===== */
+let uploadedBase64 = "";
+
+/* ===== IMAGE COMPRESSION (Max ~30KB) ===== */
+function handleImageUpload(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX_WIDTH = 400;
+      let width = img.width;
+      let height = img.height;
+      if (width > MAX_WIDTH) {
+        height = Math.round((height * MAX_WIDTH) / width);
+        width = MAX_WIDTH;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      uploadedBase64 = canvas.toDataURL("image/jpeg", 0.65);
+      $("imagePreview").src = uploadedBase64;
+      $("previewContainer").classList.remove("hidden");
+      $("uploadLabelText").textContent = "Photo Selected ✔";
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+$("imageFileInput").addEventListener("change", e => handleImageUpload(e.target.files[0]));
+$("removeImgBtn").addEventListener("click", () => {
+  uploadedBase64 = "";
+  $("imageFileInput").value = "";
+  $("previewContainer").classList.add("hidden");
+  $("uploadLabelText").textContent = "Phone se Photo chunein";
+});
+
+/* ===== CATEGORY SUGGESTIONS CLICK ===== */
+$("catSuggestions").addEventListener("click", e => {
+  const span = e.target.closest("span");
+  if (span) {
+    $("newCategory").value = span.textContent.trim();
+    toast(`Category: ${span.textContent.trim()}`);
+  }
+});
+
+/* ===== DATA & STORAGE ===== */
 let menu;
 function loadMenu() {
   try {
@@ -116,13 +205,19 @@ function loadMenu() {
   } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT_MENU));
 }
+
 function saveMenu(msg) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(menu)); toast(msg || "Saved ✔"); }
-  catch (e) { toast("⚠ Browser storage mein save nahi ho paya"); }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(menu));
+    toast(msg || "Saved ✔");
+  } catch (e) {
+    toast("⚠ Storage full ho gaya hai! Chhoti photo use karein.");
+  }
 }
+
 function toast(msg) {
   const t = $("toast"); t.textContent = msg; t.style.opacity = 1;
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.opacity = 0, 1600);
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.opacity = 0, 1800);
 }
 
 /* ===== LOGIN ===== */
@@ -136,19 +231,17 @@ function doLogin(e) {
 }
 $("loginForm").addEventListener("submit", doLogin);
 $("loginBtn").addEventListener("click", doLogin);
-$("pin").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(e); });
 $("logoutBtn").addEventListener("click", () => {
   try { sessionStorage.removeItem("admin_ok"); } catch (e) {}
   location.reload();
 });
 try { if (sessionStorage.getItem("admin_ok") === "1") showPanel(); } catch (e) {}
 
-/* ===== RENDER ===== */
+/* ===== RENDER ITEMS ===== */
 function render() {
   $("itemCount").textContent = menu.length;
-  $("catList").innerHTML = [...new Set(menu.map(i => i.category))].map(c => `<option value="${esc(c)}">`).join("");
   $("itemsList").innerHTML = menu.length === 0
-    ? `<p class="py-6 text-center text-gray-500 text-sm">Koi item nahi hai.</p>`
+    ? `<p class="py-6 text-center text-gray-500 text-sm">Abhi koi item nahi hai.</p>`
     : menu.map(i => {
         const inStock = i.inStock !== false;
         return `
@@ -160,7 +253,7 @@ function render() {
             <div class="flex items-center gap-1 mt-1">
               <span class="text-sm">₹</span>
               <input data-price="${i.id}" type="number" min="0" inputmode="numeric" value="${i.price}" class="w-20 border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
-              <button data-save="${i.id}" class="text-green-600 font-bold px-1" title="Save price">✔</button>
+              <button data-save="${i.id}" class="text-green-600 font-bold px-1 text-base" title="Save price">✔</button>
             </div>
           </div>
           <div class="flex flex-col items-end gap-2">
@@ -169,7 +262,7 @@ function render() {
               <input type="checkbox" data-stock="${i.id}" class="sr-only peer" ${inStock ? "checked" : ""}>
               <span class="w-10 h-6 bg-red-400 peer-checked:bg-green-500 rounded-full relative transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:transition peer-checked:after:translate-x-4"></span>
             </label>
-            <button data-del="${i.id}" class="text-xs text-red-500">🗑 Delete</button>
+            <button data-del="${i.id}" class="text-xs text-red-500 hover:text-red-700">🗑 Delete</button>
           </div>
         </div>`;
       }).join("");
@@ -196,25 +289,31 @@ $("itemsList").addEventListener("change", e => {
     saveMenu(e.target.checked ? "In Stock ✔" : "Out of Stock set"); render();
   }
 });
-$("itemsList").addEventListener("keydown", e => {
-  if (e.key === "Enter" && e.target.dataset.price) document.querySelector(`button[data-save="${e.target.dataset.price}"]`).click();
-});
 
 function addItem(e) {
   if (e) e.preventDefault();
   const price = Number($("newPrice").value);
   const name = $("newTitle").value.trim(), category = $("newCategory").value.trim();
   if (!name || !category || isNaN(price) || price < 0) return toast("Title, Price aur Category zaroori hain");
+  
+  // Photo logic: Gallery photo pehle, warna URL input, warna default icon
+  const finalImage = uploadedBase64 || $("newImage").value.trim() || "";
+
   menu.push({
     id: menu.reduce((m, i) => Math.max(m, i.id), 0) + 1,
     name, category, price,
     desc: $("newDesc").value.trim(),
-    image: $("newImage").value.trim(),
+    image: finalImage,
     inStock: true
   });
-  saveMenu("Item added ✔"); $("addForm").reset(); render();
+
+  saveMenu("Item successfully added ✔");
+  $("addForm").reset();
+  uploadedBase64 = "";
+  $("previewContainer").classList.add("hidden");
+  $("uploadLabelText").textContent = "Phone se Photo chunein";
+  render();
 }
-$("addForm").addEventListener("submit", addItem);
 $("addBtn").addEventListener("click", addItem);
 
 /* ===== EXPORT / IMPORT ===== */
