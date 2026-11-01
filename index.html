@@ -61,85 +61,66 @@
     <div id="cartItems" class="divide-y"></div>
 
     <div class="flex justify-between items-center py-3 border-t mt-2">
-      <span class="font-semibold">Total</span>
+      <span class="font-semibold">Total Bill</span>
       <span class="text-xl font-bold text-orange-600">₹<span id="cartTotal">0</span></span>
     </div>
 
     <!-- Checkout form -->
     <form id="checkoutForm" class="space-y-3 pb-4" novalidate>
-      <h3 class="font-bold pt-2">Checkout Details</h3>
+      <h3 class="font-bold pt-2 text-sm">Order Details</h3>
 
       <div>
-        <label class="text-sm font-medium">Name *</label>
-        <input id="custName" type="text" required placeholder="Aapka naam" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <label class="text-xs font-semibold text-gray-600">Aapka Naam *</label>
+        <input id="custName" type="text" required placeholder="Name enter karein" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
       </div>
 
       <div>
-        <label class="text-sm font-medium">Phone Number *</label>
-        <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" required placeholder="10-digit mobile number" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <label class="text-xs font-semibold text-gray-600">Mobile Number *</label>
+        <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" required placeholder="10-digit mobile number" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
       </div>
 
       <div>
-        <label class="text-sm font-medium">Order Type</label>
+        <label class="text-xs font-semibold text-gray-600">Order Type</label>
         <div class="mt-1 flex gap-2">
           <label class="flex-1"><input type="radio" name="orderType" value="Delivery" class="peer hidden" checked>
-            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🛵 Delivery</span></label>
+            <span class="block text-center border rounded-lg py-2 text-xs font-semibold peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🛵 Home Delivery</span></label>
           <label class="flex-1"><input type="radio" name="orderType" value="Dine-in" class="peer hidden">
-            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🍽️ Dine-in</span></label>
+            <span class="block text-center border rounded-lg py-2 text-xs font-semibold peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">🍽️ Table / Dine-in</span></label>
         </div>
       </div>
 
       <div>
-        <label id="addrLabel" class="text-sm font-medium">Delivery Address *</label>
-        <textarea id="custAddr" rows="2" required placeholder="Poora address" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+        <label id="addrLabel" class="text-xs font-semibold text-gray-600">Delivery Address *</label>
+        <textarea id="custAddr" rows="2" required placeholder="Poora address yahan likhein" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+      </div>
+
+      <!-- Simple Cash Notice Box -->
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-2.5 flex items-center gap-2">
+        <span class="text-lg">💵</span>
+        <span class="text-xs text-gray-600 font-medium">Payment Mode: <b>Cash on Delivery / Pay at Counter</b></span>
       </div>
 
       <div>
-        <label class="text-sm font-medium">Payment Option</label>
-        <div class="mt-1 flex gap-2">
-          <label class="flex-1"><input type="radio" name="payment" value="Cash on Delivery" class="peer hidden" checked>
-            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">💵 Cash / COD</span></label>
-          <label class="flex-1"><input type="radio" name="payment" value="Pay via UPI" class="peer hidden">
-            <span class="block text-center border rounded-lg py-2 text-sm peer-checked:bg-orange-500 peer-checked:text-white peer-checked:border-orange-500 cursor-pointer">📲 Pay via UPI</span></label>
-        </div>
-        
-        <!-- Dynamic Amount UPI QR Box -->
-        <div id="upiBox" class="hidden mt-3 bg-orange-50 border border-orange-200 rounded-xl p-3 text-center space-y-2">
-          <p class="text-xs font-semibold text-gray-700">Scan karke exact bill amount pay karein:</p>
-          <div class="flex justify-center">
-            <img id="dynamicQrImg" src="" alt="UPI QR" class="w-40 h-40 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-          </div>
-          <p class="text-xs text-gray-600">Amount: <b class="text-orange-600 text-sm">₹<span id="qrAmountText">0</span></b> | UPI: <b id="upiIdText"></b></p>
-          <a id="upiIntentBtn" href="#" class="inline-block w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-lg active:scale-95">
-            👉 Tap to Pay with GPay / PhonePe / Paytm
-          </a>
-          <p class="text-[11px] text-gray-500">Payment hone ke baad WhatsApp order bhej dein.</p>
-        </div>
+        <label class="text-xs font-semibold text-gray-600">Special Note (Optional)</label>
+        <input id="custNote" type="text" placeholder="Jaise: extra spicy, bina pyaaz" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
       </div>
 
-      <div>
-        <label class="text-sm font-medium">Special Instructions (optional)</label>
-        <input id="custNote" type="text" placeholder="Jaise: kam teekha, extra cheese" class="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
-      </div>
+      <p id="formError" class="hidden text-xs text-red-600 font-semibold"></p>
 
-      <p id="formError" class="hidden text-sm text-red-600"></p>
-
-      <button type="button" id="sendBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-[.98]">
+      <button type="button" id="sendBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl active:scale-[.98] shadow-md">
         ✅ Send Order via WhatsApp
       </button>
-      <a id="waFallback" target="_blank" rel="noopener" class="hidden block text-center text-sm text-green-700 underline">WhatsApp nahi khula? Yahan dabayein</a>
+      <a id="waFallback" target="_blank" rel="noopener" class="hidden block text-center text-xs text-green-700 underline">WhatsApp nahi khula? Yahan tap karein</a>
     </form>
   </div>
 </aside>
 
 <script>
-/* DEFAULT CONFIG — Admin panel se update hone par wahi read karega */
 let CONFIG = {
   name: "Cafe Delight",
   address: "Main Market Road, Your City",
   logo: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&q=70",
   phone: "919876543210",
-  upiId: "demo@upi",
   currency: "₹"
 };
 
@@ -180,14 +161,13 @@ function initHeader() {
   $("cafeLogo").onerror = e => { e.target.src = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><text x="50%" y="55%" font-size="30" text-anchor="middle" dominant-baseline="middle">☕</text></svg>'); };
   $("callBtn").href = "tel:+" + CONFIG.phone;
   $("waBtn").href = "https://wa.me/" + CONFIG.phone;
-  $("upiIdText").textContent = CONFIG.upiId;
   document.title = CONFIG.name + " – Digital Menu";
 }
 
 function renderTabs() {
   const cats = ["All", ...new Set(MENU.map(i => i.category))];
   $("tabs").innerHTML = cats.map(c => `
-    <button data-cat="${c}" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold border transition
+    <button data-cat="${c}" class="whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold border transition
       ${c === activeCategory ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-700 border-gray-200"}">${c}</button>
   `).join("");
 }
@@ -204,18 +184,18 @@ function renderMenu() {
            onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;200&quot; height=&quot;200&quot;><rect width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;#ffedd5&quot;/><text x=&quot;50%&quot; y=&quot;50%&quot; font-size=&quot;48&quot; text-anchor=&quot;middle&quot; dominant-baseline=&quot;middle&quot;>🍽️</text></svg>')}'"
            class="w-28 h-auto sm:w-full sm:h-40 object-cover shrink-0 bg-orange-100 ${oos ? 'grayscale opacity-60' : ''}">
       <div class="p-3 flex flex-col flex-1 min-w-0">
-        <h3 class="font-bold leading-tight">${i.name}</h3>
-        <p class="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">${i.desc || ''}</p>
+        <h3 class="font-bold leading-tight text-sm">${i.name}</h3>
+        <p class="text-[11px] text-gray-500 mt-1 line-clamp-2 flex-1">${i.desc || ''}</p>
         <div class="flex items-center justify-between mt-3">
           <span class="font-bold text-orange-600">${money(i.price)}</span>
           ${qty === 0
             ? (oos
-                ? `<span class="bg-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded-lg">Out of Stock</span>`
-                : `<button data-add="${i.id}" class="bg-orange-500 text-white text-sm font-semibold px-4 py-1.5 rounded-lg active:scale-95">+ Add</button>`)
+                ? `<span class="bg-gray-200 text-gray-500 text-[11px] font-semibold px-2.5 py-1 rounded-lg">Out of Stock</span>`
+                : `<button data-add="${i.id}" class="bg-orange-500 text-white text-xs font-semibold px-4 py-1.5 rounded-lg active:scale-95">+ Add</button>`)
             : `<div class="flex items-center gap-2 bg-orange-100 rounded-lg px-1">
-                 <button data-dec="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
-                 <span class="w-5 text-center font-semibold">${qty}</span>
-                 <button data-inc="${i.id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
+                 <button data-dec="${i.id}" class="w-7 h-7 text-base font-bold text-orange-600">−</button>
+                 <span class="w-5 text-center font-semibold text-sm">${qty}</span>
+                 <button data-inc="${i.id}" class="w-7 h-7 text-base font-bold text-orange-600">+</button>
                </div>`}
         </div>
       </div>
@@ -239,15 +219,6 @@ function changeQty(id, delta) {
   saveCart(); refresh();
 }
 
-function updateDynamicQr(total) {
-  if (total <= 0) return;
-  $("qrAmountText").textContent = total;
-  // Dynamic UPI URL with Exact Total Amount
-  const upiUrl = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.name)}&am=${total}&cu=INR&tn=Order%20Payment`;
-  $("dynamicQrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}`;
-  $("upiIntentBtn").href = upiUrl;
-}
-
 function renderCart() {
   const { count, total } = cartTotals();
   $("barCount").textContent = count;
@@ -256,7 +227,7 @@ function renderCart() {
   $("cartBar").classList.toggle("hidden", count === 0);
 
   $("cartItems").innerHTML = count === 0
-    ? `<p class="py-8 text-center text-gray-500">Cart khaali hai 🛒</p>`
+    ? `<p class="py-8 text-center text-gray-500 text-sm">Cart khaali hai 🛒</p>`
     : Object.keys(cart).map(id => {
         const it = findItem(id);
         return `
@@ -266,14 +237,13 @@ function renderCart() {
             <p class="text-xs text-gray-500">${money(it.price)} × ${cart[id]} = <b>${money(it.price * cart[id])}</b></p>
           </div>
           <div class="flex items-center gap-1 bg-orange-100 rounded-lg">
-            <button data-dec="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">−</button>
-            <span class="w-5 text-center text-sm font-semibold">${cart[id]}</span>
-            <button data-inc="${id}" class="w-8 h-8 text-lg font-bold text-orange-600">+</button>
+            <button data-dec="${id}" class="w-7 h-7 text-base font-bold text-orange-600">−</button>
+            <span class="w-5 text-center text-xs font-semibold">${cart[id]}</span>
+            <button data-inc="${id}" class="w-7 h-7 text-base font-bold text-orange-600">+</button>
           </div>
         </div>`;
       }).join("");
 
-  updateDynamicQr(total);
   if (count === 0 && drawerOpen) closeDrawer();
 }
 
@@ -293,15 +263,11 @@ function closeDrawer() {
   document.body.style.overflow = "";
 }
 
-const getRadio = name => document.querySelector(`input[name="${name}"]:checked`).value;
-
 function updateFormUI() {
-  const dine = getRadio("orderType") === "Dine-in";
+  const dine = document.querySelector('input[name="orderType"]:checked').value === "Dine-in";
   $("addrLabel").textContent = dine ? "Table Number *" : "Delivery Address *";
-  $("custAddr").placeholder = dine ? "Jaise: Table 5" : "Poora address";
+  $("custAddr").placeholder = dine ? "Jaise: Table No. 4" : "Poora delivery address";
   $("custAddr").rows = dine ? 1 : 2;
-  const isUpi = getRadio("payment") === "Pay via UPI";
-  $("upiBox").classList.toggle("hidden", !isUpi);
 }
 
 function showError(msg) { const e = $("formError"); e.textContent = msg; e.classList.remove("hidden"); }
@@ -314,20 +280,20 @@ function buildMessage(c) {
   });
   const dine = c.type === "Dine-in";
   return [
-    `*New Order – ${CONFIG.name}*`,
+    `*🛒 New Order – ${CONFIG.name}*`,
     ``,
-    `*Items:*`,
+    `*Ordered Items:*`,
     ...lines,
     ``,
-    `*Total: ${money(total)}*`,
+    `*Total Bill: ${money(total)}*`,
+    `Payment: Cash on Delivery / Counter`,
     ``,
     `*Customer Details*`,
     `Name: ${c.name}`,
     `Phone: ${c.phone}`,
     `Order Type: ${c.type}`,
     `${dine ? "Table No" : "Address"}: ${c.addr}`,
-    `Payment: ${c.payment}`,
-    c.note ? `Note: ${c.note}` : null
+    c.note ? `Special Note: ${c.note}` : null
   ].filter(l => l !== null).join("\n");
 }
 
@@ -341,8 +307,7 @@ function submitOrder(e) {
     phone: $("custPhone").value.trim(),
     addr: $("custAddr").value.trim(),
     note: $("custNote").value.trim(),
-    type: getRadio("orderType"),
-    payment: getRadio("payment")
+    type: document.querySelector('input[name="orderType"]:checked').value
   };
   if (!c.name) return showError("Apna naam likhein.");
   if (!/^[6-9]\d{9}$/.test(c.phone)) return showError("Sahi 10-digit mobile number daalein.");
@@ -367,7 +332,7 @@ $("closeCart").addEventListener("click", closeDrawer);
 $("overlay").addEventListener("click", closeDrawer);
 $("checkoutForm").addEventListener("submit", submitOrder);
 $("sendBtn").addEventListener("click", submitOrder);
-document.querySelectorAll('input[name="orderType"], input[name="payment"]').forEach(r => r.addEventListener("change", updateFormUI));
+document.querySelectorAll('input[name="orderType"]').forEach(r => r.addEventListener("change", updateFormUI));
 $("custPhone").addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g, ""));
 
 initHeader(); renderTabs(); updateFormUI(); refresh();
